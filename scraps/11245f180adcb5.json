@@ -1,0 +1,20 @@
+{
+  "title": "記事にするほどでもないこと",
+  "closed": false,
+  "archived": false,
+  "created_at": "2023-08-30",
+  "comments": [
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2023-08-30",
+      "body_markdown": "こんな形のhtmlを組んで\nbuttonタグに対してsubmitイベントを作れるかためしたけどできなかった。\n```html\n\n<div id=\"form1\">\n    <input type=\"text\" name=\"hogehoge\" value=\"\">\n    <button type=\"submit\">aaaa</button>\n</div>\n<div id=\"form2\">\n    <input type=\"text\" name=\"fugafuga\" value=\"\">\n    <button type=\"submit\">bbbb</button>\n</div>\n<script>\n    button = document.getElementsByTagName('button');\n    count = button.length;\n    for (i=0;i<count;i++) {\n        button[i].addEventListener('submit', function () {\n            console.log(document.activeElement);\n        });\n    }\n</script>\n```\n\nbuttonタグはclickイベントならできる\n```html\n<div id=\"form1\">\n    <input type=\"text\" name=\"hogehoge\" value=\"\">\n    <button type=\"submit\">aaaa</button>\n</div>\n<div id=\"form2\">\n    <input type=\"text\" name=\"fugafuga\" value=\"\">\n    <button type=\"submit\">bbbb</button>\n</div>\n<script>\n    button = document.getElementsByTagName('button');\n    count = button.length;\n    for (i=0;i<count;i++) {\n        button[i].addEventListener('click', function () {    <!--←clickにした-->\n            console.log(document.activeElement);\n        });\n    }\n</script>\n```\n\n各ボタンをクリックすると以下のログがconsoleに表示される\n```\n<button type=\"submit\">aaaa</button>\n<button type=\"submit\">bbbb</button>\n```\n\n結論\nsubmitイベント呼び出したいならformタグでくくったほうがいい\n\n【参考】\nhttps://developer.mozilla.org/ja/docs/Web/API/HTMLFormElement/submit_event",
+      "body_updated_at": "2023-08-30"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2023-09-12",
+      "body_markdown": "addEventListener()の第二引数には外で定義した関数をあてはめてはいけない\nonload時に第二引数で定義した関数が発火する\nなんとなく第二引数を別関数で定義したらonload時に謎の発火現象が起こってあれれ～ってなってしまった・・・\n\n```html\n<script>\n    window.addEventListener('load', function () {\n        form = document.getElementById(\"form1\");\n        form.addEventListener('submit', hoge());\n    });\n    function hoge() {\n        console.log(\"submited!\");\n    }\n</script>\n<form name=\"form1\" id=\"form1\" method=\"post\" action=\"?\">\n<p>ほげ</p>\n<input type=\"submit\" name=\"hoge\">\n</form>\n```\n\n\n↓これならOK\n\n```html\n<script>\n    window.addEventListener('load', function () {\n        form = document.getElementById(\"form1\");\n        form.addEventListener('submit', function () {\n            console.log(\"submited!\");\n        });\n    });\n</script>\n<form name=\"form1\" id=\"form1\" method=\"post\" action=\"?\">\n<p>ほげ</p>\n<input type=\"submit\" name=\"hoge\">\n</form>\n```",
+      "body_updated_at": "2023-09-12"
+    }
+  ]
+}

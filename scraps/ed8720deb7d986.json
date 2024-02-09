@@ -1,0 +1,13 @@
+{
+  "title": "書くこと",
+  "closed": true,
+  "archived": false,
+  "created_at": "2022-08-07",
+  "comments": [
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2022-08-07",
+      "body_markdown": "書いてみたいこと\n・GA4でPV数計測からAPIでPV数を取得するまで\n・recaptcha v2\n・ダミー画像生成するプログラム\n・tar.gz\n・Firebaseの件\n・GAS&LINE Notify\n・Git\n・SFTPアカウントさくせい\n・httpd.conf\n・Docker Mailcatcher\n・画像アップロード機能\n・microCMS\n・"
+    }
+  ]
+}

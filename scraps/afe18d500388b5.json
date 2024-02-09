@@ -1,0 +1,35 @@
+{
+  "title": "Flutter調べる！！！😊",
+  "closed": false,
+  "archived": false,
+  "created_at": "2023-05-12",
+  "comments": [
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2023-05-12",
+      "body_markdown": "Flutterおもしろそうだと思ったので遊んでみたい。(やれればやる)\n\nやりたいことロードマップ\n・タイムタイマーみたいなタイマー\n・漫画ビューアー\n・ゲーム\n・メモアプリ\n\nまずは、開発環境の構築から始める必要があるので、それについて調べていこうと思う。\n\n開発する環境\nM2 MacMini\nDocker",
+      "body_updated_at": "2023-05-17"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2023-05-17",
+      "body_markdown": "## 思ったこと1\n\n- 基本情報技術者試験を受験しよう\n- 机の上はPCと液タブでいっぱいいっぱいだからノートとる場所ない\n- それならPCでノートとりたい\n- ノートとるなら手書きでとりたい\n- でもMacで使えそうなノートアプリがない。。。？あるのはipad、iphoneのみ\n  - おそらく液タブ板タブユーザーにしか需要がない\n\n## 思ったこと2\n\n- 漫画書く作業でネームが結構めんどくさい\n  - ネームはメモ程度のアプリで十分なはずで、クリスタみたいなデカい規模のアプリで一枚一枚書くのはコストかかる。手軽さに欠ける\n\n↓\n自分が納得するメモアプリを作ればよいのでは\n",
+      "body_updated_at": "2023-05-17"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2023-05-17",
+      "body_markdown": "先駆者いた\nhttps://note.com/odiak/n/n639958a8dcba"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2023-05-17",
+      "body_markdown": "先駆者と似ているけど\n先駆者は勉強等の用紙広げて書くタイプの用途には向いていないかも"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2023-05-17",
+      "body_markdown": "そしてGoodeNotesはMacでも手書きできると知ってテンションガタ落ちしてしまうのだった"
+    }
+  ]
+}
