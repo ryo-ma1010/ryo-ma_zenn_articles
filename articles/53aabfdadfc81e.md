@@ -1,5 +1,5 @@
 ---
-title: "VSCodeでちょっとした手書きの図を書こう"
+title: "VSCodeとExcalidrawでちょっとした手書きの図を書こう"
 emoji: "🕌"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["VSCode","Excalidraw"]
