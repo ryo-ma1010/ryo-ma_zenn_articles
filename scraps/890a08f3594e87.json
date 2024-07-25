@@ -1,0 +1,28 @@
+{
+  "title": "lexical勉強する",
+  "closed": false,
+  "archived": false,
+  "created_at": "2024-02-19",
+  "comments": [
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-02-19",
+      "body_markdown": "めちゃくちゃ参考にしている神\nhttps://zenn.dev/stin/articles/lexical-rich-editor-trial\n\nplaygroundも参考になるけど、階層複雑すぎてreact初心者には理解が及ばないので\nsandboxの例も助かっている\nhttps://codesandbox.io/p/sandbox/vigilant-kate-5tncvy"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-02-19",
+      "body_markdown": "lexicalでエディタを構築する上での最低理解しておきたいこと\n\n- `LexicalComposer` からはじめる\n- 追加したい機能があれば、PluginとNodeを追加する（Playgroundを参考にしたい）\n- リッチエディタにする場合は `RichTextPlugin` つかう\n- `RichTextPlugin` のオプション `contentEditable` がテキストの出力する場所を担っているっぽい\n\n```tsx\n\"use client\";\n\nimport { ComponentProps, FC } from \"react\";\nimport { LexicalComposer } from \"@lexical/react/LexicalComposer\";\nimport { ContentEditable } from \"@lexical/react/LexicalContentEditable\";\nimport { RichTextPlugin } from \"@lexical/react/LexicalRichTextPlugin\";\nimport LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';\n\n// node\nimport { HeadingNode, QuoteNode } from \"@lexical/rich-text\";\n// Pluginはここにまとめてる\nimport { ToolbarPlugin } from \"./Toolbar\";\n\n\nconst initialConfig: ComponentProps<typeof LexicalComposer>[\"initialConfig\"] = {\n  namespace: \"MyEditor\",\n  onError(error) {\n    throw error;\n  },\n  nodes: [\n    // 追加したいNodeあったら書く\n  ]\n};\n\nexport const Lexical = () => {\n  return (\n    <LexicalComposer initialConfig={initialConfig}>\n        <div className=\"relative p-24 min-h-240\">\n            <ToolbarPlugin />\n            <RichTextPlugin\n                contentEditable={<ContentEditable />}\n                placeholder={<div>Enter some text...</div>}\n                ErrorBoundary={LexicalErrorBoundary}\n            />\n        </div>\n    </LexicalComposer>\n  );\n};\n```"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-02-19",
+      "body_markdown": "作ってる途中で\ncssまったく理解できないのでcss勉強したほうがいいなって思った。"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-02-20",
+      "body_markdown": "lexicalのplaygroundのコードが最初に比べて割と\"読める\"ようになった気がしているので解説したい。\nなお、書くことはできない模様。"
+    }
+  ]
+}

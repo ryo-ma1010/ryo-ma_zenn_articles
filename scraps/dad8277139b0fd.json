@@ -1,0 +1,28 @@
+{
+  "title": "githubとpostmanの連携",
+  "closed": false,
+  "archived": false,
+  "created_at": "2024-07-11",
+  "comments": [
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-07-11",
+      "body_markdown": "githubでpostman連携用のリポジトリ作成\n適当にopenapi形式のyamlファイル作成\nswaggerのサンプルを使用\n\n```\n$ tree -I 'node_modules'\n.\n├── README.md\n├── openapi\n│   └── petstore.yaml\n├── package-lock.json\n├── package.json\n```"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-07-11",
+      "body_markdown": "githubリポジトリからAPIをインポートする\n![](https://storage.googleapis.com/zenn-user-upload/aefc8025d349-20240711.png)"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-07-11",
+      "body_markdown": "ホーム＞インテグレーションから、githubの\"sync API\"の\"Add Integration\"を選択\n![](https://storage.googleapis.com/zenn-user-upload/b950e0033f74-20240711.png)\n\nワークスペースと連携するAPIを選択\n![](https://storage.googleapis.com/zenn-user-upload/4c1e2136c7e9-20240711.png)\n\n連携する際、\nルートとなるパスを選択\nコレクションを格納するパスを選択\nする必要がある。\n（スクショわすれた）"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-07-11",
+      "body_markdown": "連携したらこんな感じになった\n\n```\n$ tree -I 'node_modules'\n.\n├── README.md\n├── openapi\n│   ├── components\n│   │   └── pet.yaml\n│   └── petstore.yaml\n├── package-lock.json\n├── package.json\n└── postman\n    └── collections\n        └── Swagger Petstore - OpenAPI 3.0.json\n```\n\nターミナルからも、postmanアプリ上からもファイルの更新やコミットが可能\n![](https://storage.googleapis.com/zenn-user-upload/551654a8a22d-20240711.png)"
+    }
+  ]
+}

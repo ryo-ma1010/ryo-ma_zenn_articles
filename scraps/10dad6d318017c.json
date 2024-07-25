@@ -1,0 +1,29 @@
+{
+  "title": "laravel調査",
+  "closed": false,
+  "archived": false,
+  "created_at": "2024-04-10",
+  "comments": [
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-04-10",
+      "body_markdown": "Routerに複数のパスパラメータを含むルートを定義すると500エラーになる事象\n例: `http://localhost/api/users/{user_id}/posts/{post_id}`\nテストでuser_idがDBに存在しない場合の挙動を確認したところ\n422エラーを複数回吐き出した末に500エラーを返して終了した。\n500エラーは無限ループした末に出力された説ある"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-04-10",
+      "body_markdown": "その後ググったらでてきた\nhttps://stackoverflow.com/questions/63591495/i-am-getting-500-internal-error-when-trying-to-pass-named-route-with-two-paramet"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-04-10",
+      "body_markdown": "上記のリンクは関係なかった。\nまた、ググってる中で見つけたこれも関係なかった\nhttps://github.com/laravel/framework/issues/49968\n\n結論\nControllerのコンストラクタでRequestクラスを呼び出していたのが原因\nコンストラクタに置くことで無限ループしてしまう根本原因は不明"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-04-10",
+      "body_markdown": "無限ループの原因\nControllerのコンストラクタでRequestクラス呼んでる\n\n```php:HogeController.php\nclass HogeController extends Controller\n{\n    // コンストラクタでRequest呼んでる\n    public function __construct(\n        protected HogeRequest $hogeRequest\n    )\n    {}\n}\n```\n\n実際に無限ループしていた箇所\n\nログ制御を行うHandler.phpの一部分\ngetController()メソッド内で無限ループが走っていた\n```php:Handler.php\nclass Handler extends ExceptionHandler\n{\n    // なんらかの処理\n    $route = request()->route();\n    if ($route && is_object($route->getController())) { // <=== ここで無限ループ\n        // なんらかの処理\n    }\n    // 以下、処理が続く\n}\n```\n\n仮説\ngetController()メソッドではControllerのインスタンスを何度も読み込む箇所があり\nそのたびにコンストラクタのRequestクラスが呼ばれ、バリデーションチェックが走り\n何度も422エラーを無限ループしたのちに、500エラーで終了したっぽい",
+      "body_updated_at": "2024-04-10"
+    }
+  ]
+}

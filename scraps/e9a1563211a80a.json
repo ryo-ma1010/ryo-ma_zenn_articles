@@ -1,0 +1,96 @@
+{
+  "title": "Laravel Notificationの通知履歴機能を作りたい",
+  "closed": false,
+  "archived": false,
+  "created_at": "2024-06-17",
+  "comments": [
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-17",
+      "body_markdown": "方針\n通知履歴をデータベースに保存したい\n通知機能を実装したが、通知履歴機能を実装するために以下の課題が発生\n- `notify()` メソッドの返り値がnullなので `notify()` から先の処理で通知履歴機能を実装することはできなさそう\n- 通知履歴機能を実装するためには対象の通知クラス(app/Notifications)内でなんとかする必要ありそう\n\nなので、通知クラスのデータベース通知機能を利用して通知履歴機能を実装することにする。\n参考に、データベース通知の方法と、データベース通知のデフォルトをカスタマイズする方法を調べた。\n\n参考\nhttps://readouble.com/laravel/10.x/ja/notifications.html\nhttps://qiita.com/SallyCinnamon/items/433f6aff5d97b42b06af"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-17",
+      "body_markdown": "データベース通知ではLaravelの用意したコマンドを実行することでnotificationsマイグレーションが生成され、notificationsテーブルにデータベース通知を行うことができる。\n今回はこの機能を利用して通知履歴機能を実装するので\n\n- notificationsを任意のテーブル名に変更(notification_histories)\n- notification_historiesに紐づくモデルを作成\n- デフォルトチャネルの `mail` `database` につづくカスタムチャネルを作成\n- notifiableなモデルにmorphManyを返すメソッドを追加\n\nを行っていく"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-17",
+      "body_markdown": "マイグレーションファイル作成\n\n```bash\nphp artisan notifications:table\n```\n\n生成したマイグレーションファイルを任意のテーブル名とカラムに変更\n\n```php:マイグレーションファイル\n<?php\n\nuse Illuminate\\Database\\Migrations\\Migration;\nuse Illuminate\\Database\\Schema\\Blueprint;\nuse Illuminate\\Support\\Facades\\Schema;\n\nreturn new class extends Migration\n{\n    /**\n     * Run the migrations.\n     */\n    public function up(): void\n    {\n        Schema::create('notification_histories', function (Blueprint $table) {\n        // ここに必要なカラムを設定する\n        });\n    }\n\n    /**\n     * Reverse the migrations.\n     */\n    public function down(): void\n    {\n        Schema::dropIfExists('notification_histories');\n    }\n};\n```"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-17",
+      "body_markdown": "notification_historiesにひもづくモデルを作成\nただのモデルの作成なのでコマンドは割愛\n\n```php:Model\n<?php\n\nnamespace App\\Models\\***;\n\nuse Illuminate\\Database\\Eloquent\\Factories\\HasFactory;\nuse Illuminate\\Database\\Eloquent\\Model;\nuse Illuminate\\Notifications\\DatabaseNotification;\n\nclass NotificationHistory extends DatabaseNotification\n{\n    use HasFactory;\n\n    protected $table = 'notification_histories';\n}\n```\n",
+      "body_updated_at": "2024-06-17"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-17",
+      "body_markdown": "# カスタムチャネルを作成\n参考にしたQiitaの記事だとコマンドを実行してカスタムチャネルを作っていたが\nカスタムチャネルはDatabaseChannelを継承しており、\nそのDatabaseChannelは `Illuminate\\Notifications\\Channels` をnamespaseとしていたので\nそれにならってこちらでは通知クラスが作成されたディレクトリ `App\\Notifications` に Channelsディレクトリを作成し、そこにカスタムチャネルを置くことにした。\n\n```php:データベースチャネル\n<?php\n\nnamespace App\\Notifications\\Channels;\n\nuse Illuminate\\Notifications\\Channels\\DatabaseChannel;\nuse Illuminate\\Notifications\\Notification;\n\nclass CustomDatabaseChannel extends DatabaseChannel\n{\n}\n```\n\n# 通知クラスとカスタムチャネルを紐づける\n\n```php: 通知クラスのvia()メソッド\n/**\n     * Get the notification's delivery channels.\n     *\n     * @return array<int, string>\n     */\n    public function via(object $notifiable): array\n    {\n        return [\n            CustomDatabaseChannel::class,\n            'mail'\n        ];\n    }\n```",
+      "body_updated_at": "2024-06-17"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-17",
+      "body_markdown": "# notifiableなモデルにメソッドを追加\nnotifiableをuseしたモデルに `notifications()` メソッドを追加してNotificationHistoryモデルをmorphManyで紐づける感じの処理を書く\n\n```php: notifiableをuseしたモデル\n<?php\n\nnamespace App\\Models\\***;\n\nuse App\\Models\\***\\NotificationHistory;\nuse Illuminate\\Database\\Eloquent\\Factories\\HasFactory;\nuse Illuminate\\Database\\Eloquent\\Model;\nuse Illuminate\\Notifications\\Notifiable;\n\nclass Hoge extends Model\n{\n    use HasFactory;\n    use Notifiable;\n\n    public function notifications()\n    {\n        return $this->morphMany(NotificationHistory::class, 'notifiable')->latest();\n    }\n}\n```",
+      "body_updated_at": "2024-06-17"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-17",
+      "body_markdown": "以上、記事を参考に実装したところ\n\nそして以下の疑問がわいたので調査した。\n\n- notifiableをuseしたモデルに、さらに紐づけたいデータベース通知機能があったときどうするのか\n- `notifications()` 以外の名前でメソッドを定義できないか\n\n後々、モデルを改修するとなったときにnotifications()メソッドでしか定義できないとなると社内的に問題になりそうなのでもう少し深く調査した。"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-17",
+      "body_markdown": "# notifications() が呼ばれるまで\n\n通知クラス::via()\n↓\nDatabaseChannel::send()\n↓\nRoutesNotifications::routeNotificationFor()\n↓\nnotifiableをuseしたモデル::notifications()\n\n※\nDatabaseChannelはカスタムデータベースの親クラス\nRoutesNotificationsはモデルでuseしたNotifiableがさらにuseしているトレイト\n\n# RoutesNotifications::routeNotificationFor()\nnotifications()はRoutesNotificationsトレイトのrouteNotificationFor()で呼ばれていることがわかったので、routeNotificationFor()を見てみる\n\n```php:RouteNotificationsTrait routeNotificationFor()\n/**\n * Get the notification routing information for the given driver.\n *\n * @param  string  $driver\n * @param  \\Illuminate\\Notifications\\Notification|null  $notification\n * @return mixed\n */\npublic function routeNotificationFor($driver, $notification = null)\n{\n    if (method_exists($this, $method = 'routeNotificationFor'.Str::studly($driver))) {\n        return $this->{$method}($notification);\n    }\n\n    return match ($driver) {\n        'database' => $this->notifications(),\n        'mail' => $this->email,\n        default => null,\n    };\n}\n```\n\nこのメソッドは通知クラスのvia()で定義するチャネルごとにどのような処理を行うかが書かれている。\nさらに、 `routeNotificationFor()` メソッドを呼び出している `DatabaseChannel::send()` を見てみる\n\n# DatabaseChannel::send()\n\n```php: DatabaseChannelClass send()\n/**\n * Send the given notification.\n *\n * @param  mixed  $notifiable\n * @param  \\Illuminate\\Notifications\\Notification  $notification\n * @return \\Illuminate\\Database\\Eloquent\\Model\n */\npublic function send($notifiable, Notification $notification)\n{\n    return $notifiable->routeNotificationFor('database', $notification)->create(\n        $this->buildPayload($notifiable, $notification)\n    );\n}\n```\n\n`routeNotificationFor()` の第一引数がdatabaseとなっているため、`RoutesNotifications::routeNotificationFor()` で `$this->notifications()` を呼び出している。\nつまり、Notifiableをuseしたモデルに定義した `notifications()` を呼び出している。\n\nつまり、notifications()メソッド以外のメソッド名を定義するためには\n\n- notifications()以外のメソッド名を定義することは可能\n- カスタムチャネルにsend()メソッドを作成してDatabaseChannel::send()をオーバーライドする\n- モデルに `routeNotificationFor***()` というメソッド名を定義\n\nすればよいことがわかった",
+      "body_updated_at": "2024-06-17"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-17",
+      "body_markdown": "データベース通知以外でも、もしカスタムチャネルを実装することがある場合\nカスタムチャネルの作成と同時にrouteNotification***()メソッドも必要になると思われる。。。"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-18",
+      "body_markdown": "メール送信していないのに履歴に登録するのがナンセンスな気がするのと、\n送信したメール本文をDatabaseChannelでは取得できないのに気付いたので\nこの方法では実装できないことがわかった。\n\n- メール送信しているような処理でデータを取得できないか見てみる\n- イベントの発火からobserverで処理ができないか見てみる"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-18",
+      "body_markdown": "notificationはモデルに紐づくのでイベントの取得にはobserverクラスが必要なのではと思っていたが\nあれはDB操作時に発火されるイベント専門なので\n今回実装する機能についてobserverクラスは多分作らない\n\nLaravelのイベントとリスナーの機能を使って、通知イベントをキャッチできるらしいのでそこで送信履歴登録機能を実装してみる。\n今までのLaravelの機能開発でイベントとリスナーに遭遇することがなかったのでこの機能があることを現時点で初めて知った・・・\n\nLaravelのNotificationの仕様書にもちゃんとイベントのこと書いてあるね\nちゃんと仕様書読まなきゃね",
+      "body_updated_at": "2024-06-18"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-18",
+      "body_markdown": "イベント&リスナーを使って履歴登録機能を実装する\n\n通知を送るときに発火するイベント\n- NotificationSender\n- NotificationSending\n- NotificationSent\n\nのうち、NotificationSentを利用する。\n\n\nリスナーを新規作成\n\n```bash\nphp artisan make:Listener SaveNotificationHistory --event=NotificationSent\n```\n\nEventServiceProviderにイベントとリスナーを登録\n\n```php: EventServiceProvider\n<?php\n\nnamespace App\\Providers;\n\nuse App\\Listeners\\SaveNotificationHistory;\nuse Illuminate\\Foundation\\Support\\Providers\\EventServiceProvider as ServiceProvider;\nuse Illuminate\\Notifications\\Events\\NotificationSent;\nuse Illuminate\\Support\\Facades\\Event;\n\nclass EventServiceProvider extends ServiceProvider\n{\n\t/**\n\t * The event to listener mappings for the application.\n\t *\n\t * @var array<class-string, array<int, class-string>>\n\t */\n\tprotected $listen = [\n        // 通知イベント\n        NotificationSent::class => [\n            SaveNotificationHistory::class,\n        ],\n\t];\n}\n```\n\n作成したリスナーを編集\nhandle()メソッド内に書かれた処理が、イベント発火時に呼び出される\n引数として受け取った$eventは\n`$event->channel`\n`$event->notifiable`\n`$event->notification`\nでNotificationの詳細にアクセスできる。\n\n```php: SaveNotificationHistory\n<?php\n\nnamespace App\\Listeners;\n\nuse App\\Events\\NotificationSent;\nuse App\\Notifications\\SendTemplateNotification;\nuse Illuminate\\Contracts\\Queue\\ShouldQueue;\nuse Illuminate\\Notifications\\Events\\NotificationSent as EventsNotificationSent;\nuse Illuminate\\Queue\\InteractsWithQueue;\n\nclass SaveNotificationHistory\n{\n    /**\n     * Create the event listener.\n     */\n    public function __construct()\n    {\n        //\n    }\n\n    /**\n     * Handle the event.\n     */\n    public function handle(EventsNotificationSent $event): void\n    {\n        // Notificationの種類によって通知後の処理をわけたほうがよいかも\n        match (get_class($event->notification)) {\n            SendTemplateNotification::class => $this->saveNotificationHistory($event),\n        };\n    }\n\n    protected function saveNotificationHistory(EventsNotificationSent $event)\n    {\n        // ここに保存する処理書く\n    }\n}\n```",
+      "body_updated_at": "2024-06-18"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-18",
+      "body_markdown": "NotificationSentのリスナーについて\n通知したメッセージ自体を取得する場合は\n`$event->response->getOriginalMessage()`\nから取得できた\n\nただ、こんなに遠回りじゃないと取得できないの？と腑に落ちないのでいる\n\n```php: メッセージの取得\npublic function handle(EventsNotificationSent $event): void\n{\n    $message = $event->response->getOriginalMessage();\n\n    // 件名\n    $message->getSubject();\n\n    // html形式本文\n    $message->getHtmlBody();\n\n    // text形式本文\n    $message->getTextBody();\n\n    // to\n    $message->getTo();\n\n    // bcc\n    $message->getBcc();\n\n    // cc\n    $message->getCc();\n}\n```",
+      "body_updated_at": "2024-06-18"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-19",
+      "body_markdown": "# 新たな課題\n- notification×mailpitで意図的に失敗できるのか\n- メールステータスあるいは失敗したメールを抽出できるのか\n- "
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-19",
+      "body_markdown": "> - notification×mailpitで意図的に失敗できるのか\n\n意図的な失敗はおそらくできない\n\n> - メールステータスあるいは失敗したメールを抽出できるのか\n\nこれもできない\nただ、NotificationSentイベントの `$event->response` からdebugを出力することが可能\n\n```php: getDebug()\nLog::channel('mail')->info($event->response->getDebug());\n```\n\n以下、ログ出力例\n\n```\n[2024-06-19 16:57:24] local.INFO: < 220 cc2fc2140ec5 Mailpit ESMTP Service ready\n> EHLO [127.0.0.1]\n< 250-cc2fc2140ec5 greets [127.0.0.1]\n< 250-SIZE 0\n< 250 ENHANCEDSTATUSCODES\n> MAIL FROM:<hoge@example.com>\n< 250 2.1.0 Ok\n> RCPT TO:<***********@gmail.com>\n< 250 2.1.5 Ok\n> DATA\n< 354 Start mail input; end with <CR><LF>.<CR><LF>\n> .\n< 250 2.0.0 Ok: queued\n```\n\nこの文字列を解析して成功、失敗を見ることにする"
+    },
+    {
+      "author": "ryomaryoma1010",
+      "created_at": "2024-06-21",
+      "body_markdown": "通知対象のコレクションに対して\nNotificationファサードから通知するのと\n`Notification::send($notifiables, $notification)`\n\nコレクションを繰り返し処理で各モデルに逐次通知する\n`$notifiable->notify($notification)`\n\nどちらのスピードがはやいのか検証\nコレクションには、通知対象が59件分入ってる\n\n```php: 速度計測\n// ファサード使用時の速度計測\n$time_start = microtime(true);\ntry {\n    Notification::send($collection, $notification);\n} catch (Exception $e) {\n    Log::channel('mail')->error($e->getMessage());\n}\n$time_end = microtime(true);\n$time = $time_end - $time_start;\nvar_dump($time);\n// 3.0664739608765\n\n// 繰り返し処理での速度計測\n$time_start = microtime(true);\n$collection->each(function ($notifiable) use ($notification) {\n    try{\n        $notifiable->notify($notification);\n    } catch (Exception $e) {\n        Log::channel('mail')->error($e->getMessage());\n    }\n});\n$time_end = microtime(true);\n$time = $time_end - $time_start;\nvar_dump($time);\n// 2.4966559410095\n```\n\n結果、何回かやってみたけどnotify繰り返したほうがはやそう・・・？\n",
+      "body_updated_at": "2024-06-21"
+    }
+  ]
+}
